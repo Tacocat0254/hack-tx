@@ -1,28 +1,33 @@
-import xml.etree.ElementTree as ET
+import re
 import json
-from striprtf.striprtf import rtf_to_text
 
 # Read the RTF file
-with open("circles.rtf", "r") as file:
-    rtf_content = file.read()
+with open("circles.rtf", "r") as f:
+    rtf_content = f.read()
 
-# Convert RTF to plain text
-plain_text = rtf_to_text(rtf_content)
+# Remove line-continuation backslashes and join lines
+clean_text = rtf_content.replace('\\\n', '').replace('\\\r\n', '')
 
-# Parse as XML (wrap in <svg> if needed)
-root = ET.fromstring(f"<svg>{plain_text}</svg>")
+# Extract all <circle ...> tags
+circle_pattern = re.compile(r'<circle\s+[^>]*>', re.IGNORECASE)
+circles = circle_pattern.findall(clean_text)
 
 id_dict = {}
-for circle in root.findall('circle'):
-    cid = circle.attrib.get('id')
-    cx = circle.attrib.get('cx')
-    cy = circle.attrib.get('cy')
-    if cid and cx and cy:
-        id_dict[int(cid)] = {'cx': int(cx), 'cy': int(cy)}
 
-# Wrap under "id" key
-output = {"id": id_dict}
+for circle in circles:
+    # Extract id, cx, cy attributes
+    cid_match = re.search(r'id="(\d+)"', circle)
+    cx_match = re.search(r'cx="(\d+)"', circle)
+    cy_match = re.search(r'cy="(\d+)"', circle)
+    
+    if cid_match and cx_match and cy_match:
+        cid = int(cid_match.group(1))
+        cx = int(cx_match.group(1))
+        cy = int(cy_match.group(1))
+        id_dict[cid] = {'cx': cx, 'cy': cy}
 
-# Convert to JSON
-json_output = json.dumps(output, indent=2)
-print(json_output)
+# Write JSON directly (no "id" wrapper)
+with open("circles.json", "w") as json_file:
+    json.dump(id_dict, json_file, indent=2)
+
+print("JSON written to circles.json successfully!")

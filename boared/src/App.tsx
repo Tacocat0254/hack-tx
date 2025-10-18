@@ -1,11 +1,11 @@
 // src/App.tsx
-import KilterBoard from './components/KilterBoard'
+import Boared from './pages/Boared'
 import './App.css'
 
 function App() {
   return (
     <div>
-      <KilterBoard />
+      <Boared />
     </div>
   )
 }

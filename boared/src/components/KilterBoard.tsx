@@ -5414,7 +5414,6 @@ const KilterBoard = () => {
         id="1656"
       ></circle>
     </svg>
-
       {/* Display active holds */}
       <div id="active-holds" style={{ marginTop: '20px', fontSize: '14px' }}>
         {activeHolds.map(hold => `#${hold.color}:${hold.position}`).join("  |  ")}

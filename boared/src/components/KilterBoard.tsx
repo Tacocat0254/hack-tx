@@ -1,12 +1,30 @@
 // src/components/KilterBoard.tsx
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-interface HoldData {
+export interface HoldData {
   color: string;
   position: string;
 }
 
-const KilterBoard = () => {
+interface DebugRow {
+  holdId: string;
+  position: number;
+  positionBytes: [number, number];
+  color: number;
+  colorHex: string;
+}
+
+export interface KilterBoardSnapshot {
+  activeHolds: HoldData[];
+  encodedPayload: string;
+  debug: DebugRow[];
+}
+
+interface KilterBoardProps {
+  onStateChange?: (snapshot: KilterBoardSnapshot) => void;
+}
+
+const KilterBoard = ({ onStateChange }: KilterBoardProps) => {
   const [activeHolds, setActiveHolds] = useState<HoldData[]>([]);
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -122,11 +140,11 @@ const KilterBoard = () => {
   };
 
   // Generate encoded payload
-  const generateEncodedPayload = () => {
-    if (activeHolds.length === 0) return "01 00 00 02 03";
+  const generateEncodedPayload = (holds: HoldData[]) => {
+    if (holds.length === 0) return "01 00 00 02 03";
     
     // Convert active holds to placements
-    const placements = activeHolds.map(hold => ({
+    const placements = holds.map(hold => ({
       position: getPositionFromHoleId(hold.position),
       color: encodeColor(hold.color)
     }));
@@ -157,22 +175,44 @@ const KilterBoard = () => {
     addClickHandlersToCircles();
   }, []);
 
+  const encodedPayload = useMemo(
+    () => generateEncodedPayload(activeHolds),
+    [activeHolds],
+  );
+
+  const debugInfo = useMemo<DebugRow[]>(() => {
+    return activeHolds.map((hold) => {
+      const position = getPositionFromHoleId(hold.position);
+      const color = encodeColor(hold.color);
+      const position1 = position & 0xFF;
+      const position2 = (position & 0xFF00) >> 8;
+
+      return {
+        holdId: hold.position,
+        position,
+        positionBytes: [position1, position2],
+        color,
+        colorHex: `0x${zfill(color.toString(16), 2)}`,
+      };
+    });
+  }, [activeHolds]);
+
+  useEffect(() => {
+    onStateChange?.({
+      activeHolds,
+      encodedPayload,
+      debug: debugInfo,
+    });
+  }, [activeHolds, encodedPayload, debugInfo, onStateChange]);
+
   return (
-    <div style={{
-      margin: 0,
-      backgroundColor: 'white',
-      color: 'black',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center'
-    }}>
+    <div className="kilter-board-wrapper">
       <svg
         ref={svgRef}
-        width="100%"
+        className="kilter-board-canvas"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 1080 1170"
         id="svg-kb"
-        style={{ maxHeight: '750px', width: '100%' }}
       >
         <image href="/layout_big_holds.svg" height="1170" width="1080" />
         <image href="/layout_small_holds.svg" height="1170" width="1080" />
@@ -5414,31 +5454,6 @@ const KilterBoard = () => {
         id="1656"
       ></circle>
     </svg>
-      {/* Display active holds */}
-      <div id="active-holds" style={{ marginTop: '20px', fontSize: '14px' }}>
-        {activeHolds.map(hold => `#${hold.color}:${hold.position}`).join("  |  ")}
-      </div>
-
-      {/* Display encoded payload */}
-      <div style={{ marginTop: '10px', fontSize: '12px', fontFamily: 'monospace' }}>
-        <div><strong>Final Packet:</strong> {generateEncodedPayload()}</div>
-        {activeHolds.length > 0 && (
-          <div style={{ marginTop: '5px', fontSize: '10px' }}>
-            <div><strong>Debug Info:</strong></div>
-            {activeHolds.map((hold, index) => {
-              const position = getPositionFromHoleId(hold.position);
-              const color = encodeColor(hold.color);
-              const position1 = position & 0xFF;
-              const position2 = (position & 0xFF00) >> 8;
-              return (
-                <div key={index}>
-                  Hold {hold.position}: pos={position} ({position1}, {position2}), color={color} (0x{color.toString(16)})
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
     </div>
   );
 };

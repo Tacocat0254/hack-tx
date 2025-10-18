@@ -11,13 +11,10 @@
     "gemini:example": "node scripts/gemini-example.mjs"
   },
   "dependencies": {
-<<<<<<< HEAD
-    "@hangtime/grip-connect": "^0.9.0",
-=======
     "@google/genai": "^1.25.0",
     "@google/generative-ai": "^0.24.1",
+    "@hangtime/grip-connect": "^0.9.0",
     "dotenv": "^17.2.3",
->>>>>>> 558969c5d4dc200bc18aed9a4db8ccf066aad89c
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },

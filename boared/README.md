@@ -1,73 +1,46 @@
-# React + TypeScript + Vite
+# Kilter Board Toolkit
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project recreates the blog example from [bazun.me/kiterboard](https://bazun.me/blog/kiterboard/) in
+React. The main module renders an interactive Kilter Board overlay where you can toggle holds and see
+the exact BLE payload that would light them up. A small Gemini helper is also included for
+experimenting with AI-generated route suggestions.
 
-Currently, two official plugins are available:
+## Quick start
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open the local URL printed in the terminal. You will see:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **Interactive board sandbox** – click holds to cycle through the same color mapping described in the
+  blog post. The Bluetooth payload updates instantly so you can copy it into a BLE console.
+- **Gemini helper (optional)** – helper utilities live under `src/lib/gemini.ts` and a CLI example at
+  `scripts/gemini-example.mjs` for experimenting without the UI.
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Configure Gemini access (optional)
+
+1. Create an API key in the [Google AI Studio](https://aistudio.google.com/app/apikey).
+2. Copy `.env.example` to `.env` and add your key:
+
+   ```env
+   VITE_GEMINI_API_KEY=your_key_here
+   ```
+
+3. Restart any running dev server. The Gemini features will fall back to a static response when the
+   key is missing.
+
+Run the CLI sample once the key is set:
+
+```bash
+npm run gemini:example
 ```
+
+## Build for production
+
+```bash
+npm run build
+```
+
+The build artefacts are written to `dist/`.

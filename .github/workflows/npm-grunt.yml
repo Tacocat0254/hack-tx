@@ -9,7 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x]
@@ -22,8 +21,8 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Install dependencies and build
+    - name: Install dependencies and run Grunt
       working-directory: boared
       run: |
-        npm install
-        npx grunt
+        npm ci
+        npx grunt --verbose

@@ -11,7 +11,7 @@
 }
 
 .boared-board-column {
-  flex: 0 0 clamp(360px, 52vw, 640px);
+  flex: 0 0 clamp(640px, 52vw, 640px);
   display: flex;
   justify-content: center;
 }

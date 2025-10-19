@@ -38,6 +38,7 @@ export const ROLE_CYCLE = [
 
 const KilterBoard = ({ onStateChange, presetHolds, locked = false }: KilterBoardProps) => {
   const [activeHolds, setActiveHolds] = useState<HoldData[]>([])
+  const activeHoldsRef = useRef<HoldData[]>([])
   const svgRef = useRef<SVGSVGElement>(null)
 
   const zfill = (value: string | number, width: number): string =>
@@ -144,7 +145,7 @@ const KilterBoard = ({ onStateChange, presetHolds, locked = false }: KilterBoard
 
     const target = event.target as SVGCircleElement
     const holdId = target.id
-    const existing = activeHolds.find((hold) => hold.position === holdId)
+    const existing = activeHoldsRef.current.find((hold) => hold.position === holdId)
     const currentIndex = existing ? existing.roleIndex : 0
     const nextIndex = (currentIndex + 1) % ROLE_CYCLE.length
     const role = ROLE_CYCLE[nextIndex]
@@ -236,6 +237,7 @@ const KilterBoard = ({ onStateChange, presetHolds, locked = false }: KilterBoard
 
   useEffect(() => {
     updateCircleVisualState()
+    activeHoldsRef.current = activeHolds
   }, [activeHolds])
 
   const encodedPayload = useMemo(

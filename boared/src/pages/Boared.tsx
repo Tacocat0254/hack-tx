@@ -144,7 +144,7 @@ const Boared = () => {
       </div>
 
       <aside className="boared-info-panel">
-        <h2 className="boared-info-heading">Selection Details</h2>
+        <h2 className="boared-info-heading">Boared BetaBot</h2>
 
         <form className="boared-form" aria-label="Route metadata">
           <div className="boared-field">
@@ -201,17 +201,18 @@ const Boared = () => {
           </div>
         )}
 
+        {/*
         <div className="boared-info-block">
           <span className="boared-info-label">Active holds</span>
           <code className="boared-info-value">{activeHoldSummary}</code>
         </div>
-
         <div className="boared-info-block">
           <span className="boared-info-label">Final packet</span>
           <code className="boared-info-value">{finalPacket}</code>
         </div>
-
-        {snapshot && snapshot.debug.length > 0 && (
+``        */}
+        
+        {snapshot && snapshot.debug.length > 0 && false && (
           <div className="boared-debug">
             <span className="boared-info-label">Debug breakdown</span>
             <div className="boared-debug-grid">

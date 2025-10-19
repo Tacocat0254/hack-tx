@@ -144,7 +144,7 @@ const Boared = () => {
       </div>
 
       <aside className="boared-info-panel">
-        <h2 className="boared-info-heading">Boared BetaBot</h2>
+        <h2 className="boared-info-heading">BetaBot</h2>
 
         <form className="boared-form" aria-label="Route metadata">
           <div className="boared-field">

@@ -1,79 +1,89 @@
-// components/ConnectKilterButton.tsx
-"use client";
-import React from "react";
-import { KilterBoard } from "@hangtime/grip-connect";
+import { useEffect, useState } from "react";
+import {
+  connectIfNeeded,
+  disconnectIfPossible,
+  detectConnected,
+  getKilter,
+} from "../lib/KilterClient";
 
-export default function ConnectKilterButton() {
-  const kbRef = React.useRef<KilterBoard | null>(null);
-  const [status, setStatus] = React.useState<"idle"|"connecting"|"connected"|"error">("idle");
-  const [message, setMessage] = React.useState<string>("");
+type ConnectionState = "idle" | "connecting" | "connected" | "error";
 
-  // one KilterBoard instance
-  React.useEffect(() => {
-    kbRef.current = new KilterBoard();
-    return () => { kbRef.current = null; };
+export default function ConnectKilter() {
+  const [state, setState] = useState<ConnectionState>("idle");
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    if (detectConnected()) {
+      setState("connected");
+      setMessage("Connected to Kilter Board ✅");
+    }
   }, []);
 
-  async function connect() {
-    if (!kbRef.current) return;
-    setStatus("connecting");
-    setMessage("");
+  async function handleConnect() {
+    if (state === "connecting") return;
+
+    if (state === "connected") {
+      await handleDisconnect();
+      return;
+    }
+
+    setState("connecting");
+    setMessage("Requesting Bluetooth device…");
 
     try {
-      // Some builds use .connect(); others expose .open()/.requestDevice()
-      const kb = kbRef.current as any;
-      if (typeof kb.connect === "function") {
-        await kb.connect();
-      } else if (typeof kb.open === "function") {
-        await kb.open();
-      } else if (typeof kb.requestDevice === "function") {
-        await kb.requestDevice();
-      } else {
-        throw new Error("No connect/open method found on KilterBoard instance.");
+      await connectIfNeeded();
+
+      if (!detectConnected(getKilter())) {
+        throw new Error("Device did not confirm the connection.");
       }
 
-      setStatus("connected");
+      setState("connected");
       setMessage("Connected to Kilter Board ✅");
-    } catch (err: any) {
-      setStatus("error");
-      setMessage(err?.message ?? String(err));
+    } catch (error) {
+      const msg =
+        error instanceof Error ? error.message : String(error ?? "Unknown error");
+      setState("error");
+      setMessage(msg);
     }
   }
 
-  async function disconnect() {
-    const kb = kbRef.current as any;
+  async function handleDisconnect() {
     try {
-      if (kb && typeof kb.disconnect === "function") {
-        await kb.disconnect();
-      }
-    } finally {
-      setStatus("idle");
+      await disconnectIfPossible();
+      setState("idle");
       setMessage("Disconnected.");
+    } catch (error) {
+      const msg =
+        error instanceof Error ? error.message : String(error ?? "Unknown error");
+      setState("error");
+      setMessage(msg);
     }
   }
 
-  const isBusy = status === "connecting";
-  const isConnected = status === "connected";
+  const isBusy = state === "connecting";
+  const isConnected = state === "connected";
+
+  const buttonLabel = isConnected
+    ? "Disconnect"
+    : isBusy
+      ? "Connecting…"
+      : "Connect Bluetooth";
+  const buttonClassName = isConnected
+    ? "boared-button boared-button--ghost"
+    : "boared-button";
 
   return (
-    <div style={{ display: "inline-flex", gap: 12, alignItems: "center" }}>
+    <div className="boared-connect">
       <button
-        onClick={connect}
-        disabled={isBusy || isConnected}
-        style={{ padding: "0.5rem 0.9rem" }}
+        type="button"
+        className={buttonClassName}
+        onClick={handleConnect}
+        disabled={isBusy}
       >
-        {isBusy ? "Connecting…" : isConnected ? "Connected" : "Connect Bluetooth"}
+        {buttonLabel}
       </button>
 
-      <button
-        onClick={disconnect}
-        disabled={!isConnected}
-        style={{ padding: "0.5rem 0.9rem" }}
-      >
-        Disconnect
-      </button>
-
-      <span style={{ fontSize: 12, opacity: 0.8 }}>
+      <span className={`boared-helper boared-status boared-status--${state}`}>
         {message}
       </span>
     </div>

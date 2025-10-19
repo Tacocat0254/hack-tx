@@ -1,7 +1,7 @@
 import { useMemo, useState, type ChangeEvent } from "react";
 import KilterBoard, { type KilterBoardSnapshot } from "../components/KilterBoard";
 import ConnectKilter from "../components/ConnectKilter";
-import { sendLedConfig, clearLeds } from "../components/sendLedConfig";
+import { sendLedConfig } from "../components/sendLedConfig";
 
 const DEFAULT_PACKET = "01 00 00 02 03";
 
@@ -46,15 +46,6 @@ const Boared = () => {
     }
   }
 
-  async function handleClear() {
-    try {
-      const payload = await clearLeds();
-      setStatus(`Cleared LEDs. Payload: ${payload ? JSON.stringify(payload) : "undefined"}`);
-    } catch (e: any) {
-      setStatus(`Clear error: ${e?.message ?? String(e)}`);
-    }
-  }
-
   return (
     <div className="boared-layout">
       <div className="boared-board-column">
@@ -64,15 +55,12 @@ const Boared = () => {
       <aside className="boared-info-panel">
         <h2 className="boared-info-heading">Selection Details</h2>
 
-        {/* Bluetooth controls come from the separate TSX file */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-          <ConnectKilter />
-          <button onClick={handleSend} className="boared-button">Send to Board</button>
-          <button onClick={handleClear} className="boared-button">Clear LEDs</button>
-        </div>
-        <div className="boared-helper" style={{ marginBottom: 16 }}>{status}</div>
-
         <form className="boared-form" aria-label="Route metadata">
+          <div className="boared-field">
+            <span className="boared-field-label">Bluetooth</span>
+            <ConnectKilter />
+          </div>
+
           <label className="boared-field">
             <span className="boared-field-label">Route name</span>
             <input value={routeName} onChange={handleRouteNameChange} placeholder="Enter a project name" className="boared-input" type="text" />
@@ -83,6 +71,14 @@ const Boared = () => {
             <textarea value={setterNotes} onChange={handleSetterNotesChange} placeholder="Add beta, grade ideas, or goals for Gemini." className="boared-textarea" rows={4}/>
             <span className="boared-helper">{setterNotes.length} character{setterNotes.length === 1 ? "" : "s"}</span>
           </label>
+
+          <div className="boared-field boared-field--actions">
+            <span className="boared-field-label">Send configuration</span>
+            <button onClick={handleSend} type="button" className="boared-button">
+              Send to Board
+            </button>
+            <span className="boared-helper boared-helper--status">{status}</span>
+          </div>
         </form>
 
         <div className="boared-info-block">

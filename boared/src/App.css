@@ -51,6 +51,66 @@
   font-weight: 600;
 }
 
+.boared-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.boared-field--actions {
+  gap: 0.75rem;
+}
+
+.boared-field--actions .boared-button {
+  align-self: flex-start;
+}
+
+.boared-field--actions .boared-helper {
+  margin-top: -0.2rem;
+}
+
+.boared-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.7rem 1.2rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, rgba(124, 131, 255, 0.85), rgba(124, 214, 255, 0.85));
+  color: #05070d;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform 0.12s ease-out, box-shadow 0.12s ease-out, opacity 0.12s ease-out;
+}
+
+.boared-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px rgba(124, 214, 255, 0.35);
+}
+
+.boared-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.boared-button--ghost {
+  background: transparent;
+  color: rgba(247, 249, 255, 0.85);
+  border-color: rgba(247, 249, 255, 0.25);
+  box-shadow: none;
+}
+
+.boared-button--ghost:hover {
+  background: rgba(247, 249, 255, 0.08);
+  box-shadow: none;
+}
+
 .boared-form {
   display: flex;
   flex-direction: column;
@@ -102,6 +162,42 @@
 .boared-helper {
   font-size: 0.75rem;
   color: rgba(247, 249, 255, 0.45);
+}
+
+.boared-helper--status {
+  min-height: 1.1rem;
+}
+
+.boared-connect {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.boared-status {
+  letter-spacing: 0.01em;
+  color: rgba(247, 249, 255, 0.65);
+}
+
+.boared-status--connected {
+  color: #7ce2ff;
+}
+
+.boared-status--error {
+  color: #ff8a8a;
+}
+
+.boared-status--connecting {
+  color: rgba(247, 249, 255, 0.75);
+}
+
+.boared-connect .boared-button {
+  align-self: flex-start;
+}
+
+.boared-connect .boared-helper {
+  flex-basis: 100%;
 }
 
 .boared-info-block {

@@ -155,7 +155,7 @@ function combineNotes(matches: MatchedRule[]): string {
 export function parsePromptToGuidance(prompt: string): ParsedGuidance {
   const allMatches: MatchedRule[] = []
   
-  for (const [key, rule] of Object.entries(GRADE_RULES)) {
+  for (const rule of Object.values(GRADE_RULES)) {
     const matches = fuzzyMatch(prompt, rule.keywords)
     for (const match of matches) {
       match.rule = rule
@@ -163,7 +163,7 @@ export function parsePromptToGuidance(prompt: string): ParsedGuidance {
     }
   }
   
-  for (const [key, rule] of Object.entries(MOVE_TYPE_RULES)) {
+  for (const rule of Object.values(MOVE_TYPE_RULES)) {
     const matches = fuzzyMatch(prompt, rule.keywords)
     for (const match of matches) {
       match.rule = rule
@@ -171,7 +171,7 @@ export function parsePromptToGuidance(prompt: string): ParsedGuidance {
     }
   }
   
-  for (const [key, rule] of Object.entries(STYLE_RULES)) {
+  for (const rule of Object.values(STYLE_RULES)) {
     const matches = fuzzyMatch(prompt, rule.keywords)
     for (const match of matches) {
       match.rule = rule
@@ -179,7 +179,7 @@ export function parsePromptToGuidance(prompt: string): ParsedGuidance {
     }
   }
   
-  for (const [key, rule] of Object.entries(CONSTRAINT_RULES)) {
+  for (const rule of Object.values(CONSTRAINT_RULES)) {
     const matches = fuzzyMatch(prompt, rule.keywords)
     for (const match of matches) {
       match.rule = rule

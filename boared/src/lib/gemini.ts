@@ -43,6 +43,8 @@ function buildPrompt({
   selectionGuidance,
   setterNotes,
 }: HoldSelectionInput) {
+
+  // Need to turn it into a HoldData and put 
   return [
     'You are an experienced Kilter Board route setter.',
     'Use the board description JSON and guidance notes to choose specific holds.',
@@ -52,14 +54,15 @@ function buildPrompt({
         holds: [
           {
             id: 'string // hold identifier from the board JSON',
-            usage: 'start|intermediate|finish',
-            coordinates: { x: 0, y: 0 },
-            orientation: 'clockwise_degrees',
-            difficultyAdjustment: 'optional notes on grading impact',
-            notes: 'additional optional notes',
+            color: 'string // color of the hold, #00FF00 for start, #0000FF for intermediate, #FF00FF for finish, #FFFF00 for foot holds',
           },
         ],
         summary: 'Optional short explanation of the selection.',
+        usage: 'start|intermediate|finish',
+        coordinates: { x: 0, y: 0 },
+        orientation: 'clockwise_degrees',
+        difficultyAdjustment: 'optional notes on grading impact',
+        notes: 'additional optional notes',
       },
       null,
       2,

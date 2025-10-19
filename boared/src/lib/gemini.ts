@@ -11,7 +11,7 @@ export interface HoldSelection {
   summary?: string
 }
 
-const MODEL_NAME = 'gemini-1.5-flash'
+const MODEL_NAME = 'gemini-2.5-flash'
 
 const fallbackResponse: HoldSelection = {
   holds: [
@@ -90,7 +90,10 @@ function extractJson(text: string): HoldSelection {
 export async function generateHoldSelection(
   input: HoldSelectionInput,
 ): Promise<HoldSelection> {
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY as string | undefined
+  // Handle both browser (Vite) and Node.js environments
+  const apiKey = typeof import.meta !== 'undefined' && import.meta.env
+    ? import.meta.env.VITE_GEMINI_API_KEY as string | undefined
+    : (typeof (globalThis as any).process !== 'undefined' ? (globalThis as any).process.env.VITE_GEMINI_API_KEY : undefined) as string | undefined
 
   if (!apiKey) {
     return fallbackResponse

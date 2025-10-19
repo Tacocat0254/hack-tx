@@ -8,9 +8,13 @@
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { config } from 'dotenv';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Load environment variables from .env file
+config({ path: join(__dirname, '../.env') });
 
 // Import the modules we need to test
 const { parsePromptToGuidance } = await import('../src/lib/promptParser.ts');
@@ -21,6 +25,19 @@ const circlesPath = join(__dirname, '../public/circles.json');
 const circlesData = JSON.parse(readFileSync(circlesPath, 'utf8'));
 
 console.log('🧪 Testing AI Route Generation Integration\n');
+
+// Check if API key is available
+const apiKey = process.env.VITE_GEMINI_API_KEY;
+if (!apiKey) {
+  console.log('⚠️  VITE_GEMINI_API_KEY not found in environment variables');
+  console.log('   The Gemini API tests will use fallback responses');
+  console.log('   To test with real API:');
+  console.log('   1. Create a .env file in the boared directory');
+  console.log('   2. Add: VITE_GEMINI_API_KEY=your_api_key_here');
+  console.log('   3. Run this script again\n');
+} else {
+  console.log('✅ VITE_GEMINI_API_KEY found, will test with real API\n');
+}
 
 // Test 1: Prompt Parser
 console.log('1️⃣ Testing Prompt Parser...');

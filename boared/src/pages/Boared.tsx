@@ -7,7 +7,8 @@ import KilterBoard, {
 import ConnectKilter from "../components/ConnectKilter";
 import { sendLedConfig } from "../components/sendLedConfig";
 import { parsePromptToGuidance } from "../lib/promptParser";
-import { generateHoldSelection } from "../lib/gemini";
+//import { generateHoldSelection } from "../lib/gemini";
+import { generateHoldSelection } from "../lib/routesModel";
 import { getPositionCodeFromHoldId } from "../modules/kilterboardPositions";
 import circlesData from "../../public/circles.json";
 

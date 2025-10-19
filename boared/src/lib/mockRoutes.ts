@@ -1,0 +1,217 @@
+// src/lib/hardcodedRoutesBank.ts
+export type RawRoute = {
+  grade: string;           // e.g., "v3"
+  angle: number;           // e.g., 40
+  holds: Array<Record<string, { cx: number; cy: number; color: string }>>;
+};
+
+export const ROUTE_BANK: RawRoute[] = [
+  {
+    grade: "v3",
+    angle: 40,
+    holds: [
+      {
+        "1281": { cx: 239, cy: 750, color: "orange" },
+        "1284": { cx: 239, cy: 870, color: "orange" },
+        "1303": { cx: 300, cy: 510, color: "cyan" },
+        "1348": { cx: 420, cy: 990, color: "orange" },
+        "1356": { cx: 420, cy: 689, color: "green" },
+        "1365": { cx: 420, cy: 330, color: "cyan" },
+        "1366": { cx: 420, cy: 270, color: "cyan" },
+        "1397": { cx: 479, cy: 809, color: "orange" },
+        "1400": { cx: 479, cy: 929, color: "orange" },
+        "1413": { cx: 540, cy: 689, color: "green" },
+        "1416": { cx: 540, cy: 569, color: "cyan" },
+        "1426": { cx: 540, cy: 150, color: "cyan" },
+        "1428": { cx: 540, cy: 30, color: "purple" },
+        "1446": { cx: 600, cy: 510, color: "orange" },
+        "1485": { cx: 660, cy: 30, color: "purple" }
+      }
+    ]
+  },
+  {
+    grade: "v4",
+    angle: 35,
+    holds: [
+      {
+        "1287": { cx: 239, cy: 990, color: "green" },
+        "1340": { cx: 360, cy: 809, color: "green" },
+        "1357": { cx: 420, cy: 630, color: "cyan" },
+        "1428": { cx: 540, cy: 30, color: "purple" },
+        "1436": { cx: 600, cy: 90, color: "cyan" },
+        "1443": { cx: 600, cy: 390, color: "cyan" },
+        "1445": { cx: 600, cy: 449, color: "cyan" },
+        "1554": { cx: 840, cy: 270, color: "cyan" },
+        "1565": { cx: 840, cy: 689, color: "orange" }
+      }
+    ]
+  },
+  {
+    grade: "v4",
+    angle: 40,
+    holds: [
+      {
+        "1356": { cx: 420, cy: 689, color: "orange" },
+        "1366": { cx: 420, cy: 270, color: "cyan" },
+        "1386": { cx: 479, cy: 390, color: "cyan" },
+        "1411": { cx: 540, cy: 750, color: "orange" },
+        "1416": { cx: 540, cy: 569, color: "green" },
+        "1419": { cx: 540, cy: 449, color: "cyan" },
+        "1420": { cx: 540, cy: 390, color: "cyan" },
+        "1426": { cx: 540, cy: 150, color: "cyan" },
+        "1428": { cx: 540, cy: 30, color: "purple" },
+        "1473": { cx: 660, cy: 569, color: "green" },
+        "1511": { cx: 720, cy: 809, color: "orange" }
+      }
+    ]
+  },
+  {
+    grade: "v5",
+    angle: 45,
+    holds: [
+      {
+        "1289": { cx: 239, cy: 1050, color: "orange" },
+        "1334": { cx: 360, cy: 569, color: "cyan" },
+        "1340": { cx: 360, cy: 809, color: "green" },
+        "1341": { cx: 360, cy: 870, color: "green" },
+        "1427": { cx: 540, cy: 90, color: "cyan" },
+        "1442": { cx: 600, cy: 330, color: "cyan" },
+        "1445": { cx: 600, cy: 449, color: "cyan" },
+        "1479": { cx: 660, cy: 330, color: "cyan" },
+        "1485": { cx: 660, cy: 30, color: "purple" },
+        "1506": { cx: 720, cy: 630, color: "orange" },
+        "1562": { cx: 840, cy: 569, color: "orange" }
+      }
+    ]
+  },
+  {
+    grade: "v1",
+    angle: 35,
+    holds: [
+      {
+        "1150": { cx: 540, cy: 1110, color: "orange" },
+        "1294": { cx: 300, cy: 870, color: "orange" },
+        "1335": { cx: 360, cy: 630, color: "orange" },
+        "1356": { cx: 420, cy: 689, color: "cyan" },
+        "1366": { cx: 420, cy: 270, color: "cyan" },
+        "1388": { cx: 479, cy: 449, color: "cyan" },
+        "1408": { cx: 540, cy: 870, color: "green" },
+        "1419": { cx: 540, cy: 449, color: "cyan" },
+        "1426": { cx: 540, cy: 150, color: "purple" },
+        "1471": { cx: 660, cy: 630, color: "cyan" }
+      }
+    ]
+  },
+  {
+    grade: "v0",
+    angle: 40,
+    holds: [
+      {
+        "1465": { cx: 660, cy: 870, color: "orange" },
+        "1499": { cx: 720, cy: 330, color: "cyan" },
+        "1565": { cx: 840, cy: 689, color: "green" },
+        "1585": { cx: 900, cy: 630, color: "green" },
+        "1588": { cx: 900, cy: 510, color: "cyan" },
+        "1593": { cx: 900, cy: 330, color: "cyan" },
+        "1597": { cx: 900, cy: 150, color: "cyan" },
+        "1599": { cx: 900, cy: 30, color: "purple" },
+        "1635": { cx: 1019, cy: 929, color: "orange" },
+        "1645": { cx: 1019, cy: 510, color: "cyan" }
+      }
+    ]
+  },
+  {
+    grade: "v3",
+    angle: 35,
+    holds: [
+      {
+        "1287": { cx: 239, cy: 990, color: "orange" },
+        "1297": { cx: 300, cy: 750, color: "green" },
+        "1321": { cx: 360, cy: 30, color: "purple" },
+        "1338": { cx: 360, cy: 750, color: "green" },
+        "1389": { cx: 479, cy: 510, color: "cyan" },
+        "1391": { cx: 479, cy: 569, color: "cyan" },
+        "1411": { cx: 540, cy: 750, color: "orange" },
+        "1423": { cx: 540, cy: 270, color: "cyan" },
+        "1426": { cx: 540, cy: 150, color: "cyan" },
+        "1455": { cx: 600, cy: 870, color: "orange" },
+        "1476": { cx: 660, cy: 449, color: "cyan" }
+      }
+    ]
+  },
+  {
+    grade: "v3",
+    angle: 40,
+    holds: [
+      {
+        "1154": { cx: 420, cy: 1110, color: "orange" },
+        "1159": { cx: 270, cy: 1140, color: "orange" },
+        "1284": { cx: 239, cy: 870, color: "orange" },
+        "1294": { cx: 300, cy: 870, color: "green" },
+        "1297": { cx: 300, cy: 750, color: "green" },
+        "1303": { cx: 300, cy: 510, color: "cyan" },
+        "1333": { cx: 390, cy: 540, color: "orange" },
+        "1357": { cx: 420, cy: 630, color: "cyan" },
+        "1360": { cx: 420, cy: 510, color: "cyan" },
+        "1365": { cx: 420, cy: 330, color: "cyan" },
+        "1366": { cx: 420, cy: 270, color: "cyan" },
+        "1411": { cx: 540, cy: 750, color: "orange" },
+        "1436": { cx: 600, cy: 90, color: "cyan" },
+        "1439": { cx: 600, cy: 210, color: "cyan" },
+        "1473": { cx: 660, cy: 569, color: "orange" },
+        "1492": { cx: 720, cy: 30, color: "purple" },
+        "1533": { cx: 780, cy: 449, color: "orange" }
+      }
+    ]
+  },
+  {
+    grade: "v4",
+    angle: 35,
+    holds: [
+      {
+        "1465": { cx: 660, cy: 870, color: "orange" },
+        "1499": { cx: 720, cy: 330, color: "cyan" },
+        "1565": { cx: 840, cy: 689, color: "green" },
+        "1585": { cx: 900, cy: 630, color: "green" },
+        "1588": { cx: 900, cy: 510, color: "cyan" },
+        "1593": { cx: 900, cy: 330, color: "cyan" },
+        "1597": { cx: 900, cy: 150, color: "cyan" },
+        "1599": { cx: 900, cy: 30, color: "purple" },
+        "1635": { cx: 1019, cy: 929, color: "orange" },
+        "1645": { cx: 1019, cy: 510, color: "cyan" }
+      }
+    ]
+  },
+  {
+    grade: "v1",
+    angle: 45,
+    holds: [
+      {
+        "1147": { cx: 630, cy: 1140, color: "orange" },
+        "1149": { cx: 570, cy: 1140, color: "orange" },
+        "1153": { cx: 450, cy: 1140, color: "orange" },
+        "1238": { cx: 210, cy: 839, color: "orange" },
+        "1241": { cx: 210, cy: 719, color: "orange" },
+        "1247": { cx: 210, cy: 480, color: "orange" },
+        "1268": { cx: 239, cy: 210, color: "cyan" },
+        "1272": { cx: 239, cy: 390, color: "cyan" },
+        "1279": { cx: 270, cy: 660, color: "orange" },
+        "1285": { cx: 270, cy: 900, color: "orange" },
+        "1288": { cx: 270, cy: 1020, color: "orange" },
+        "1303": { cx: 300, cy: 510, color: "cyan" },
+        "1321": { cx: 360, cy: 30, color: "purple" },
+        "1349": { cx: 450, cy: 960, color: "orange" },
+        "1356": { cx: 420, cy: 689, color: "cyan" },
+        "1361": { cx: 450, cy: 480, color: "orange" },
+        "1365": { cx: 420, cy: 330, color: "cyan" },
+        "1402": { cx: 509, cy: 1020, color: "orange" },
+        "1408": { cx: 540, cy: 870, color: "green" },
+        "1415": { cx: 570, cy: 599, color: "orange" },
+        "1416": { cx: 540, cy: 569, color: "cyan" }
+      }
+    ]
+  }
+];
+
+export default ROUTE_BANK;
+

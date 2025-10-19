@@ -7,6 +7,7 @@ export interface HoldSelectionInput {
 }
 
 export interface HoldSelection {
+  name?: string
   holds: Array<Record<string, unknown>>
   summary?: string
 }
@@ -14,6 +15,7 @@ export interface HoldSelection {
 const MODEL_NAME = 'gemini-2.5-flash'
 
 const fallbackResponse: HoldSelection = {
+  name: 'Sample AI Route',
   holds: [
     {
       id: 'A1',
@@ -51,18 +53,17 @@ function buildPrompt({
     'Only respond with valid JSON matching this shape:',
     JSON.stringify(
       {
+        name: 'string // short, human-friendly route name',
         holds: [
           {
             id: 'string // hold identifier from the board JSON',
-            color: 'string // color of the hold, #00FF00 for start, #0000FF for intermediate, #FF00FF for finish, #FFFF00 for foot holds',
+            color:
+              '#HEX // #00FF00 for start, #0000FF for move, #FF00FF for finish, #FFFF00 for feet or support',
+            usage: 'optional start|move|finish',
+            notes: 'optional extra notes about this hold',
           },
         ],
         summary: 'Optional short explanation of the selection.',
-        usage: 'start|intermediate|finish',
-        coordinates: { x: 0, y: 0 },
-        orientation: 'clockwise_degrees',
-        difficultyAdjustment: 'optional notes on grading impact',
-        notes: 'additional optional notes',
       },
       null,
       2,

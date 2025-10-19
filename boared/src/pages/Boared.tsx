@@ -15,12 +15,11 @@ const ROLE_BY_COLOR: Record<string, number> = { red: 2, green: 1, blue: 3 };
 
 const Boared = () => {
   const [snapshot, setSnapshot] = useState<KilterBoardSnapshot | null>(null);
-  const [routeName, setRouteName] = useState("");
-  const [setterNotes, setSetterNotes] = useState("");
   const [aiInstructions, setAiInstructions] = useState(
     "Generate a crimpy V5 with flowing movement",
   );
   const [status, setStatus] = useState("");
+  const [generatedName, setGeneratedName] = useState("");
   const [aiSummary, setAiSummary] = useState("");
   const [presetHolds, setPresetHolds] = useState<HoldData[] | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -40,25 +39,14 @@ const Boared = () => {
     }));
   }
 
-  const handleRouteNameChange = (event: ChangeEvent<HTMLInputElement>) =>
-    setRouteName(event.target.value);
-  const handleSetterNotesChange = (
-    event: ChangeEvent<HTMLTextAreaElement>,
-  ) => setSetterNotes(event.target.value);
   const handleAiInstructionsChange = (
     event: ChangeEvent<HTMLTextAreaElement>,
   ) => setAiInstructions(event.target.value);
 
   async function handleGenerateAi() {
     const promptParts: string[] = [];
-    if (routeName.trim()) {
-      promptParts.push(`Route name ${routeName.trim()}`);
-    }
     if (aiInstructions.trim()) {
       promptParts.push(aiInstructions.trim());
-    }
-    if (setterNotes.trim()) {
-      promptParts.push(setterNotes.trim());
     }
 
     const prompt = promptParts.join(". ");
@@ -73,14 +61,11 @@ const Boared = () => {
 
     try {
       const parsed = parsePromptToGuidance(prompt);
-      const combinedNotes = [setterNotes.trim(), parsed.setterNotes]
-        .filter(Boolean)
-        .join(". ");
 
       const response = await generateHoldSelection({
         boardJson: JSON.stringify(circlesData),
         selectionGuidance: parsed.selectionGuidance,
-        setterNotes: combinedNotes,
+        setterNotes: aiInstructions,
       });
 
       const newHolds: HoldData[] = response.holds
@@ -104,6 +89,7 @@ const Boared = () => {
       }
 
       setPresetHolds(newHolds);
+      setGeneratedName(response.name ?? "");
       setAiSummary(response.summary ?? "");
       setStatus(`Gemini generated ${newHolds.length} holds.`);
     } catch (error: any) {
@@ -151,16 +137,12 @@ const Boared = () => {
             <ConnectKilter />
           </div>
 
-          <label className="boared-field">
-            <span className="boared-field-label">Route name</span>
-            <input
-              value={routeName}
-              onChange={handleRouteNameChange}
-              placeholder="Enter a project name"
-              className="boared-input"
-              type="text"
-            />
-          </label>
+          {generatedName && (
+            <div className="boared-field">
+              <span className="boared-field-label">Route name</span>
+              <div className="boared-generated-name">{generatedName}</div>
+            </div>
+          )}
 
           <label className="boared-field">
             <span className="boared-field-label">AI instructions</span>
@@ -171,20 +153,6 @@ const Boared = () => {
               className="boared-textarea"
               rows={3}
             />
-          </label>
-
-          <label className="boared-field">
-            <span className="boared-field-label">Setter notes</span>
-            <textarea
-              value={setterNotes}
-              onChange={handleSetterNotesChange}
-              placeholder="Add beta, grade ideas, or goals for Gemini."
-              className="boared-textarea"
-              rows={4}
-            />
-            <span className="boared-helper">
-              {setterNotes.length} character{setterNotes.length === 1 ? "" : "s"}
-            </span>
           </label>
 
           <div className="boared-field boared-field--actions">

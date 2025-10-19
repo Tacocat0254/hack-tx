@@ -140,18 +140,6 @@ function combineGuidance(matches: MatchedRule[]): string {
   return guidanceParts.join('. ')
 }
 
-function combineNotes(matches: MatchedRule[]): string {
-  const noteParts: string[] = []
-  
-  for (const match of matches) {
-    if (match.rule.notes) {
-      noteParts.push(match.rule.notes)
-    }
-  }
-  
-  return noteParts.join('. ')
-}
-
 export function parsePromptToGuidance(prompt: string): ParsedGuidance {
   const allMatches: MatchedRule[] = []
   
@@ -190,7 +178,9 @@ export function parsePromptToGuidance(prompt: string): ParsedGuidance {
   const resolvedMatches = resolveConflicts(allMatches)
   
   return {
-    selectionGuidance: combineGuidance(resolvedMatches) || 'Create a well-balanced route with varied hold types',
-    setterNotes: combineNotes(resolvedMatches) || 'Standard route setting'
+    selectionGuidance:
+      combineGuidance(resolvedMatches) ||
+      'Create a well-balanced route with varied hold types',
+    setterNotes: prompt,
   }
 }

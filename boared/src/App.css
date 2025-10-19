@@ -154,6 +154,15 @@
   box-shadow: 0 0 0 3px rgba(124, 214, 255, 0.2);
 }
 
+.boared-generated-name {
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(13, 18, 30, 0.9);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
 .boared-textarea {
   resize: vertical;
   min-height: 120px;

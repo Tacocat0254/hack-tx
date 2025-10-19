@@ -1,8 +1,5 @@
 // src/components/KilterBoard.tsx
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { parsePromptToGuidance } from '../lib/promptParser';
-import { generateHoldSelection } from '../lib/gemini';
-import circlesData from '../../public/circles.json';
 
 export interface HoldData {
   color: string;
@@ -25,11 +22,12 @@ export interface KilterBoardSnapshot {
 
 interface KilterBoardProps {
   onStateChange?: (snapshot: KilterBoardSnapshot) => void;
+  presetHolds?: HoldData[];
+  locked?: boolean;
 }
 
-const KilterBoard = ({ onStateChange }: KilterBoardProps) => {
+const KilterBoard = ({ onStateChange, presetHolds, locked = false }: KilterBoardProps) => {
   const [activeHolds, setActiveHolds] = useState<HoldData[]>([]);
-  const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const svgRef = useRef<SVGSVGElement>(null);
 
   // Color palette - first entry MUST be "transparent"
@@ -99,45 +97,8 @@ const KilterBoard = ({ onStateChange }: KilterBoardProps) => {
     return payload;
   };
 
-  // AI Route Generation Function
-  const generateAIRoute = async (prompt: string) => {
-    try {
-      setIsGenerating(true);
-      
-      // Parse the prompt to get guidance and notes
-      const { selectionGuidance, setterNotes } = parsePromptToGuidance(prompt);
-      
-      // Convert circles.json to string for boardJson parameter
-      const boardJson = JSON.stringify(circlesData);
-      
-      // Call Gemini API to generate hold selection
-      const response = await generateHoldSelection({
-        boardJson,
-        selectionGuidance,
-        setterNotes
-      });
-      
-      // Map the holds from Gemini response to HoldData format
-      const newHolds: HoldData[] = response.holds.map((hold: any) => ({
-        color: hold.color.replace('#', ''), // Remove # from color
-        position: hold.id // Use id as position (matches circle IDs)
-      }));
-      
-      // Replace all activeHolds with AI-generated ones
-      setActiveHolds(newHolds);
-      
-      console.log('AI route generated successfully:', response.summary);
-      
-    } catch (error) {
-      console.error('Error generating AI route:', error);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   const handleCircleClick = (event: Event) => {
-    // Disable interactions while generating AI route
-    if (isGenerating) return;
+    if (locked) return;
     
     const target = event.target as SVGCircleElement;
     const currentStroke = target.getAttribute("stroke") || "transparent";
@@ -238,16 +199,16 @@ const KilterBoard = ({ onStateChange }: KilterBoardProps) => {
     addClickHandlersToCircles();
   }, []);
 
+  useEffect(() => {
+    if (presetHolds) {
+      setActiveHolds(presetHolds);
+    }
+  }, [presetHolds]);
+
   // Update visual state when activeHolds changes
   useEffect(() => {
     updateCircleVisualState();
   }, [activeHolds]);
-
-  // TEMPORARY: Test AI generation on mount
-  useEffect(() => {
-    const testPrompt = "v5 crimpy route"; // TODO: Remove this temporary test
-    generateAIRoute(testPrompt);
-  }, []); // Empty dependency array means this runs once on mount
 
   const encodedPayload = useMemo(
     () => generateEncodedPayload(activeHolds),
@@ -281,29 +242,13 @@ const KilterBoard = ({ onStateChange }: KilterBoardProps) => {
 
   return (
     <div className="kilter-board-wrapper">
-      {isGenerating && (
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          background: 'rgba(0, 0, 0, 0.8)',
-          color: 'white',
-          padding: '20px',
-          borderRadius: '8px',
-          zIndex: 1000,
-          fontSize: '18px'
-        }}>
-          Generating AI route...
-        </div>
-      )}
       <svg
         ref={svgRef}
         className="kilter-board-canvas"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 1080 1170"
         id="svg-kb"
-        style={{ opacity: isGenerating ? 0.5 : 1 }}
+        style={{ opacity: locked ? 0.5 : 1 }}
       >
         <image href="/layout_big_holds.svg" height="1170" width="1080" />
         <image href="/layout_small_holds.svg" height="1170" width="1080" />

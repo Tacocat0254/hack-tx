@@ -46,7 +46,7 @@ scale_y = (y2_img - y1_img) / (cy2_json - cy1_json)
 offset_x = x1_img - cx1_json * scale_x
 offset_y = y1_img - cy1_json * scale_y
 
-print("\n✅ Calibration complete.")
+print("\nCalibration complete.")
 print(json.dumps({
     "scale_x": scale_x,
     "scale_y": scale_y,

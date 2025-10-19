@@ -1,5 +1,6 @@
 import { useMemo, useState, type ChangeEvent } from "react";
 import KilterBoard, {
+  ROLE_CYCLE,
   type HoldData,
   type KilterBoardSnapshot,
 } from "../components/KilterBoard";
@@ -7,17 +8,14 @@ import ConnectKilter from "../components/ConnectKilter";
 import { sendLedConfig } from "../components/sendLedConfig";
 import { parsePromptToGuidance } from "../lib/promptParser";
 import { generateHoldSelection } from "../lib/gemini";
+import { getPositionCodeFromHoldId } from "../modules/kilterboardPositions";
 import circlesData from "../../public/circles.json";
 
 const DEFAULT_PACKET = "01 00 00 02 03";
 
-const ROLE_BY_COLOR: Record<string, number> = { red: 2, green: 1, blue: 3 };
-
 const Boared = () => {
   const [snapshot, setSnapshot] = useState<KilterBoardSnapshot | null>(null);
-  const [aiInstructions, setAiInstructions] = useState(
-    "Generate a crimpy V5 with flowing movement",
-  );
+  const [aiInstructions, setAiInstructions] = useState("");
   const [status, setStatus] = useState("");
   const [generatedName, setGeneratedName] = useState("");
   const [aiSummary, setAiSummary] = useState("");
@@ -26,7 +24,9 @@ const Boared = () => {
 
   const activeHoldSummary = useMemo(() => {
     if (!snapshot || snapshot.activeHolds.length === 0) return "—";
-    return snapshot.activeHolds.map((h) => `#${h.color}:${h.position}`).join("  |  ");
+    return snapshot.activeHolds
+      .map((hold) => `${hold.displayColor}:${hold.position}`)
+      .join("  |  ");
   }, [snapshot]);
 
   const finalPacket = snapshot ? snapshot.encodedPayload : DEFAULT_PACKET;
@@ -34,9 +34,22 @@ const Boared = () => {
   function toLedConfig() {
     if (!snapshot) return [];
     return snapshot.activeHolds.map((h) => ({
-      position: Number(h.position),
-      role_id: ROLE_BY_COLOR[h.color] ?? 1,
+      position: getPositionCodeFromHoldId(h.position) ?? Number(h.position),
+      role_id: ROLE_CYCLE[h.roleIndex]?.id ?? 0,
     }));
+  }
+
+  const resolveRoleIndex = (colorHex: string): number => {
+    const normalized = colorHex.trim().replace(/^#/, '').toUpperCase()
+    const byDisplay = ROLE_CYCLE.findIndex(
+      (role) => role.display.replace(/^#/, '').toUpperCase() === normalized,
+    )
+    if (byDisplay !== -1) return byDisplay
+
+    const byLed = ROLE_CYCLE.findIndex(
+      (role) => role.led.toUpperCase() === normalized,
+    )
+    return byLed !== -1 ? byLed : 1
   }
 
   const handleAiInstructionsChange = (
@@ -70,19 +83,21 @@ const Boared = () => {
 
       const newHolds: HoldData[] = response.holds
         .map((hold: any, index: number) => {
-          const rawColor = typeof hold.color === "string" ? hold.color : "#00FF00";
-          const color = rawColor.startsWith("#") ? rawColor.slice(1) : rawColor;
-          const positionSource = hold.id ?? hold.position ?? index;
-          const position =
-            positionSource !== undefined && positionSource !== null
-              ? String(positionSource)
-              : undefined;
+          const colorHex = typeof hold.color === 'string' ? hold.color : '#00FF00'
+          const positionSource = hold.id ?? hold.position ?? index
+          if (positionSource === undefined || positionSource === null) return null
 
-          if (!position) return null;
+          const position = String(positionSource)
+          const roleIndex = resolveRoleIndex(colorHex)
+          const role = ROLE_CYCLE[roleIndex] ?? ROLE_CYCLE[1]
 
-          return { color, position };
+          return {
+            position,
+            roleIndex,
+            displayColor: role.display,
+          }
         })
-        .filter((hold): hold is HoldData => hold !== null);
+        .filter((hold): hold is HoldData => hold !== null)
 
       if (newHolds.length === 0) {
         throw new Error("Gemini did not return any holds.");

@@ -1,9 +1,11 @@
 // src/components/KilterBoard.tsx
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { getPositionCodeFromHoldId } from '../modules/kilterboardPositions';
 
 export interface HoldData {
-  color: string;
   position: string;
+  roleIndex: number;
+  displayColor: string;
 }
 
 interface DebugRow {
@@ -26,112 +28,145 @@ interface KilterBoardProps {
   locked?: boolean;
 }
 
+export const ROLE_CYCLE = [
+  { id: 0, display: 'transparent', led: 'FFFFFF' },
+  { id: 1, display: '#00FF00', led: '00FF00' },
+  { id: 2, display: '#FFFF00', led: 'FFFF00' },
+  { id: 3, display: '#0000FF', led: '40E0C0' },
+  { id: 4, display: '#FF00FF', led: 'FF00FF' },
+]
+
 const KilterBoard = ({ onStateChange, presetHolds, locked = false }: KilterBoardProps) => {
-  const [activeHolds, setActiveHolds] = useState<HoldData[]>([]);
-  const svgRef = useRef<SVGSVGElement>(null);
+  const [activeHolds, setActiveHolds] = useState<HoldData[]>([])
+  const svgRef = useRef<SVGSVGElement>(null)
 
-  // Color palette - first entry MUST be "transparent"
-  const colors = ["transparent", "#00FF00", "#FFFF00", "#0000FF", "#FF00FF"];
+  const zfill = (value: string | number, width: number): string =>
+    String(value).padStart(width, '0')
 
-  // Helper functions
-  const zfill = (s: string | number, len: number): string => 
-    String(s).padStart(len, "0");
-
-  // Position mapping - replace this with actual SQLite lookup when available
-
-    const positionMap: Record<string, number> = {
-        "161": 417,
-        "1133": 1133,
-        "1050": 1050,
-        // etc...
-      };
-      
-      const getPositionFromHoleId = (holeId: string): number => {
-        return positionMap[holeId] || parseInt(holeId);
-      };
-
-
-  // Color encoding: pack RGB color into 8 bits
+  const getPositionFromHoleId = (holeId: string): number => {
+    const code = getPositionCodeFromHoldId(holeId)
+    if (code === undefined) {
+      const numeric = Number.parseInt(holeId, 10)
+      return Number.isNaN(numeric) ? 0 : numeric
+    }
+    return code
+  }
   const encodeColor = (hexColor: string): number => {
-    if (!hexColor || hexColor === "") return 0; // transparent
-    
-    // Convert hex to RGB
-    const r = parseInt(hexColor.slice(0, 2), 16);
-    const g = parseInt(hexColor.slice(2, 4), 16);
-    const b = parseInt(hexColor.slice(4, 6), 16);
-    
-    // Pack color: ((R // 32) << 5) | (G // 64) | (B // 32)
-    return ((Math.floor(r / 32) << 5) | Math.floor(g / 64) | Math.floor(b / 32)) & 0xFF;
-  };
+    let clean = (hexColor || '').trim()
+    if (clean.startsWith('#')) clean = clean.slice(1)
+    if (clean.length === 3) {
+      clean = clean
+        .split('')
+        .map((char) => char + char)
+        .join('')
+    }
+    clean = clean.padEnd(6, 'F').slice(0, 6)
 
-  // Generate packet payload for a single placement
-  const generatePacketPayload = (placements: Array<{position: number, color: number}>): string => {
-    if (placements.length === 0) return "";
-    
-    let payload = "";
-    
-    placements.forEach((placement, index) => {
-      // Determine packet index marker
-      let marker: number;
-      if (placements.length === 1) {
-        marker = 0x54; // only packet
-      } else if (index === 0) {
-        marker = 0x52; // first packet
-      } else if (index === placements.length - 1) {
-        marker = 0x53; // last packet
-      } else {
-        marker = 0x51; // middle packet
+    const r = parseInt(clean.slice(0, 2), 16) || 0
+    const g = parseInt(clean.slice(2, 4), 16) || 0
+    const b = parseInt(clean.slice(4, 6), 16) || 0
+
+    const rPacked = Math.floor(r / 32) << 5
+    const gPacked = Math.floor(g / 32) << 2
+    const bPacked = Math.floor(b / 64)
+
+    return (rPacked | gPacked | bPacked) & 0xff
+  }
+
+  const encodePosition = (position: number): [number, number] => {
+    const low = position & 0xff
+    const high = (position & 0xff00) >> 8
+    return [low, high]
+  }
+
+  const PACKET_MIDDLE = 81
+  const PACKET_FIRST = 82
+  const PACKET_LAST = 83
+  const PACKET_ONLY = 84
+  const MESSAGE_BODY_MAX_LENGTH = 255
+
+  const checksum = (data: number[]): number => {
+    let total = 0
+    for (const value of data) {
+      total = (total + value) & 0xff
+    }
+    return (~total) & 0xff
+  }
+
+  const wrapBytes = (data: number[]): number[] => {
+    if (data.length > MESSAGE_BODY_MAX_LENGTH) {
+      return []
+    }
+
+    return [1, data.length, checksum(data), 2, ...data, 3]
+  }
+
+  const prepBytesV3 = (
+    placements: Array<{ position: number; ledColor: string }>,
+  ): number[] => {
+    if (placements.length === 0) {
+      return [1, 0, 0, 2, 3]
+    }
+
+    const packets: number[][] = []
+    let current: number[] = [PACKET_MIDDLE]
+
+    for (const placement of placements) {
+      if (current.length + 3 > MESSAGE_BODY_MAX_LENGTH) {
+        packets.push(current)
+        current = [PACKET_MIDDLE]
       }
-      
-      // Position encoding
-      const position1 = placement.position & 0xFF;
-      const position2 = (placement.position & 0xFF00) >> 8;
-      
-      // Add to payload: marker + position1 + position2 + color
-      payload += zfill(marker.toString(16), 2);
-      payload += zfill(position1.toString(16), 2);
-      payload += zfill(position2.toString(16), 2);
-      payload += zfill(placement.color.toString(16), 2);
-    });
-    
-    return payload;
-  };
+
+      const [position1, position2] = encodePosition(placement.position)
+      const colorPacked = encodeColor(placement.ledColor)
+      current.push(position1, position2, colorPacked)
+    }
+
+    packets.push(current)
+
+    if (packets.length === 1) {
+      packets[0][0] = PACKET_ONLY
+    } else if (packets.length > 1) {
+      packets[0][0] = PACKET_FIRST
+      packets[packets.length - 1][0] = PACKET_LAST
+    }
+
+    const flattened: number[] = []
+    for (const packet of packets) {
+      flattened.push(...wrapBytes(packet))
+    }
+
+    return flattened
+  }
 
   const handleCircleClick = (event: Event) => {
-    if (locked) return;
-    
-    const target = event.target as SVGCircleElement;
-    const currentStroke = target.getAttribute("stroke") || "transparent";
-    const newStroke = colors[(colors.indexOf(currentStroke) + 1) % colors.length];
+    if (locked) return
 
-    // Update the circle's appearance
-    target.setAttribute("stroke", newStroke);
-    target.setAttribute("fill", newStroke);
+    const target = event.target as SVGCircleElement
+    const holdId = target.id
+    const existing = activeHolds.find((hold) => hold.position === holdId)
+    const currentIndex = existing ? existing.roleIndex : 0
+    const nextIndex = (currentIndex + 1) % ROLE_CYCLE.length
+    const role = ROLE_CYCLE[nextIndex]
 
-    // Create hold data
-    const newHoldData: HoldData = {
-      color: newStroke.startsWith("#") ? newStroke.slice(1) : "", // Remove # if present
-      position: target.id
-    };
+    target.setAttribute('stroke', role.display)
+    target.setAttribute('fill', role.display)
 
-    // Update active holds state
-    setActiveHolds(prevHolds => {
-      if (newStroke === "transparent") {
-        // Remove from activeHolds if present
-        return prevHolds.filter(hold => hold.position !== newHoldData.position);
-      } else {
-        // Upsert
-        const idx = prevHolds.findIndex(hold => hold.position === newHoldData.position);
-        if (idx === -1) {
-          return [...prevHolds, newHoldData];
-        } else {
-          const updated = [...prevHolds];
-          updated[idx] = newHoldData;
-          return updated;
-        }
+    setActiveHolds((prev) => {
+      if (nextIndex === 0) {
+        return prev.filter((hold) => hold.position !== holdId)
       }
-    });
-  };
+
+      const updatedHold: HoldData = {
+        position: holdId,
+        roleIndex: nextIndex,
+        displayColor: role.display,
+      }
+
+      const filtered = prev.filter((hold) => hold.position !== holdId)
+      return [...filtered, updatedHold]
+    })
+  }
 
   // Add click handlers to all circles
   const addClickHandlersToCircles = () => {
@@ -145,34 +180,21 @@ const KilterBoard = ({ onStateChange, presetHolds, locked = false }: KilterBoard
 
   // Generate encoded payload
   const generateEncodedPayload = (holds: HoldData[]) => {
-    if (holds.length === 0) return "01 00 00 02 03";
-    
-    // Convert active holds to placements
-    const placements = holds.map(hold => ({
-      position: getPositionFromHoleId(hold.position),
-      color: encodeColor(hold.color)
-    }));
-    
-    // Generate packet payload
-    const packetPayload = generatePacketPayload(placements);
-    
-    // Calculate checksum
-    const payloadBytes = packetPayload.match(/.{2}/g)?.map(byte => parseInt(byte, 16)) || [];
-    const checksum = (~payloadBytes.reduce((sum, byte) => sum + byte, 0)) & 0xFF;
-    
-    // Build final data packet
-    const packetLength = payloadBytes.length;
-    const finalData = [
-      "01", // first constant byte
-      zfill(packetLength.toString(16), 2), // packet length
-      zfill(checksum.toString(16), 2), // checksum
-      "02", // middle constant byte
-      packetPayload, // packet payload
-      "03" // final constant byte
-    ].join(" ");
-    
-    return finalData;
-  };
+    const placements = holds
+      .map((hold) => {
+        const role = ROLE_CYCLE[hold.roleIndex] ?? ROLE_CYCLE[0]
+        return {
+          position: getPositionFromHoleId(hold.position),
+          ledColor: role.led,
+        }
+      })
+      .filter((placement) => Number.isInteger(placement.position) && placement.position > 0)
+
+    placements.sort((a, b) => a.position - b.position)
+
+    const bytes = prepBytesV3(placements)
+    return bytes.map((byte) => zfill(byte.toString(16), 2)).join(' ')
+  }
 
   // Update circle visual state based on activeHolds
   const updateCircleVisualState = () => {
@@ -180,57 +202,65 @@ const KilterBoard = ({ onStateChange, presetHolds, locked = false }: KilterBoard
       const circles = svgRef.current.querySelectorAll('circle');
       circles.forEach(circle => {
         const circleId = circle.id;
-        const activeHold = activeHolds.find(hold => hold.position === circleId);
-        
+        const activeHold = activeHolds.find((hold) => hold.position === circleId)
+
         if (activeHold) {
-          const color = activeHold.color.startsWith('#') ? activeHold.color : `#${activeHold.color}`;
-          circle.setAttribute("stroke", color);
-          circle.setAttribute("fill", color);
+          circle.setAttribute('stroke', activeHold.displayColor)
+          circle.setAttribute('fill', activeHold.displayColor)
         } else {
-          circle.setAttribute("stroke", "transparent");
-          circle.setAttribute("fill", "transparent");
+          circle.setAttribute('stroke', 'transparent')
+          circle.setAttribute('fill', 'transparent')
         }
       });
     }
   };
 
-  // Set up event listeners when component mounts
   useEffect(() => {
-    addClickHandlersToCircles();
-  }, []);
+    addClickHandlersToCircles()
+  }, [])
 
   useEffect(() => {
-    if (presetHolds) {
-      setActiveHolds(presetHolds);
-    }
-  }, [presetHolds]);
+    if (!presetHolds) return
 
-  // Update visual state when activeHolds changes
+    setActiveHolds(
+      presetHolds.map((hold) => {
+        const role = ROLE_CYCLE[hold.roleIndex] ?? ROLE_CYCLE[0]
+        return {
+          position: hold.position,
+          roleIndex: hold.roleIndex,
+          displayColor: role.display,
+        }
+      }),
+    )
+  }, [presetHolds])
+
   useEffect(() => {
-    updateCircleVisualState();
-  }, [activeHolds]);
+    updateCircleVisualState()
+  }, [activeHolds])
 
   const encodedPayload = useMemo(
     () => generateEncodedPayload(activeHolds),
     [activeHolds],
   );
 
-  const debugInfo = useMemo<DebugRow[]>(() => {
-    return activeHolds.map((hold) => {
-      const position = getPositionFromHoleId(hold.position);
-      const color = encodeColor(hold.color);
-      const position1 = position & 0xFF;
-      const position2 = (position & 0xFF00) >> 8;
+  const debugInfo = useMemo<DebugRow[]>(
+    () =>
+      activeHolds.map((hold) => {
+        const position = getPositionFromHoleId(hold.position)
+        const role = ROLE_CYCLE[hold.roleIndex] ?? ROLE_CYCLE[0]
+        const colorValue = encodeColor(role.led)
+        const [position1, position2] = encodePosition(position)
 
-      return {
-        holdId: hold.position,
-        position,
-        positionBytes: [position1, position2],
-        color,
-        colorHex: `0x${zfill(color.toString(16), 2)}`,
-      };
-    });
-  }, [activeHolds]);
+        return {
+          holdId: hold.position,
+          position,
+          positionBytes: [position1, position2],
+          color: colorValue,
+          colorHex: `0x${zfill(colorValue.toString(16), 2)}`,
+        }
+      }),
+    [activeHolds],
+  )
 
   useEffect(() => {
     onStateChange?.({

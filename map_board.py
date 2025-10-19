@@ -15,16 +15,26 @@ circles = circle_pattern.findall(clean_text)
 id_dict = {}
 
 for circle in circles:
-    # Extract id, cx, cy attributes
+    # Extract id, cx, cy, r, and width attributes
     cid_match = re.search(r'id="(\d+)"', circle)
     cx_match = re.search(r'cx="(\d+)"', circle)
     cy_match = re.search(r'cy="(\d+)"', circle)
+    r_match = re.search(r'r="(\d+)"', circle)
+    width_match = re.search(r'width="([\d.]+)"', circle)  # width might be float
     
     if cid_match and cx_match and cy_match:
         cid = int(cid_match.group(1))
         cx = int(cx_match.group(1))
         cy = int(cy_match.group(1))
-        id_dict[cid] = {'cx': cx, 'cy': cy}
+        r = int(r_match.group(1)) if r_match else None
+        width = float(width_match.group(1)) if width_match else None
+        
+        id_dict[cid] = {
+            'cx': cx,
+            'cy': cy,
+            'r': r,
+            'width': width
+        }
 
 # Write JSON directly (no "id" wrapper)
 with open("circles.json", "w") as json_file:
